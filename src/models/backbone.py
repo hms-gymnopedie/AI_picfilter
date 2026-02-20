@@ -21,8 +21,9 @@ class _ConvBNReLU(nn.Sequential):
         padding: int = 1,
     ) -> None:
         super().__init__(
-            nn.Conv2d(in_ch, out_ch, kernel_size, stride=stride,
-                      padding=padding, bias=False),
+            nn.Conv2d(
+                in_ch, out_ch, kernel_size, stride=stride, padding=padding, bias=False
+            ),
             nn.BatchNorm2d(out_ch),
             nn.ReLU(inplace=True),
         )
@@ -46,13 +47,13 @@ class LightweightCNN(nn.Module):
         # 인코더: 256 -> 128 -> 64 -> 32 -> 16 -> 8
         # 채널: 3 -> 16 -> 32 -> 64 -> 128 -> 128
         self.encoder = nn.Sequential(
-            _ConvBNReLU(3,   16,  stride=2),   # 256 -> 128
-            _ConvBNReLU(16,  16),
-            _ConvBNReLU(16,  32,  stride=2),   # 128 -> 64
-            _ConvBNReLU(32,  32),
-            _ConvBNReLU(32,  64,  stride=2),   # 64  -> 32
-            _ConvBNReLU(64,  64),
-            _ConvBNReLU(64,  128, stride=2),   # 32  -> 16
+            _ConvBNReLU(3, 16, stride=2),  # 256 -> 128
+            _ConvBNReLU(16, 16),
+            _ConvBNReLU(16, 32, stride=2),  # 128 -> 64
+            _ConvBNReLU(32, 32),
+            _ConvBNReLU(32, 64, stride=2),  # 64  -> 32
+            _ConvBNReLU(64, 64),
+            _ConvBNReLU(64, 128, stride=2),  # 32  -> 16
             _ConvBNReLU(128, 128),
         )
 
@@ -70,8 +71,8 @@ class LightweightCNN(nn.Module):
         Returns:
             softmax 가중치 [B, output_dim], 합 = 1.0
         """
-        feat = self.encoder(x)           # [B, 128, H/16, W/16]
-        feat = self.gap(feat)            # [B, 128, 1, 1]
+        feat = self.encoder(x)  # [B, 128, H/16, W/16]
+        feat = self.gap(feat)  # [B, 128, 1, 1]
         feat = feat.view(feat.size(0), -1)  # [B, 128]
-        logits = self.fc(feat)           # [B, output_dim]
-        return F.softmax(logits, dim=-1) # [B, output_dim], 합 = 1.0
+        logits = self.fc(feat)  # [B, output_dim]
+        return F.softmax(logits, dim=-1)  # [B, output_dim], 합 = 1.0

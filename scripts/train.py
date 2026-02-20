@@ -30,52 +30,89 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="AI_picfilter NILUT 모델 학습")
 
     # 설정
-    parser.add_argument("--config", type=str, default=None, help="설정 파일 경로 (YAML)")
-    parser.add_argument("--device", type=str, default="auto",
-                        help="학습 디바이스 (cpu/cuda/mps/auto)")
-    parser.add_argument("--resume", type=str, default=None,
-                        help="이어서 학습할 체크포인트 경로")
+    parser.add_argument(
+        "--config", type=str, default=None, help="설정 파일 경로 (YAML)"
+    )
+    parser.add_argument(
+        "--device", type=str, default="auto", help="학습 디바이스 (cpu/cuda/mps/auto)"
+    )
+    parser.add_argument(
+        "--resume", type=str, default=None, help="이어서 학습할 체크포인트 경로"
+    )
     parser.add_argument("--seed", type=int, default=42, help="랜덤 시드")
 
     # 데이터
-    parser.add_argument("--data-type", type=str, default="cube",
-                        choices=["cube", "paired"],
-                        help="데이터 타입: cube(.cube 파일) 또는 paired(이미지 쌍)")
-    parser.add_argument("--cube-dir", type=str, default=None,
-                        help=".cube 파일 디렉토리 (data-type=cube 시)")
-    parser.add_argument("--input-dir", type=str, default=None,
-                        help="원본 이미지 디렉토리 (data-type=paired 시)")
-    parser.add_argument("--target-dir", type=str, default=None,
-                        help="보정 이미지 디렉토리 (data-type=paired 시)")
-    parser.add_argument("--batch-size", type=int, default=4096,
-                        help="배치 크기 (cube 모드: 픽셀 수, paired 모드: 이미지 수)")
-    parser.add_argument("--num-workers", type=int, default=0,
-                        help="DataLoader 워커 수")
+    parser.add_argument(
+        "--data-type",
+        type=str,
+        default="cube",
+        choices=["cube", "paired"],
+        help="데이터 타입: cube(.cube 파일) 또는 paired(이미지 쌍)",
+    )
+    parser.add_argument(
+        "--cube-dir",
+        type=str,
+        default=None,
+        help=".cube 파일 디렉토리 (data-type=cube 시)",
+    )
+    parser.add_argument(
+        "--input-dir",
+        type=str,
+        default=None,
+        help="원본 이미지 디렉토리 (data-type=paired 시)",
+    )
+    parser.add_argument(
+        "--target-dir",
+        type=str,
+        default=None,
+        help="보정 이미지 디렉토리 (data-type=paired 시)",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=4096,
+        help="배치 크기 (cube 모드: 픽셀 수, paired 모드: 이미지 수)",
+    )
+    parser.add_argument("--num-workers", type=int, default=0, help="DataLoader 워커 수")
 
     # 모델
-    parser.add_argument("--hidden-dims", type=int, nargs="+", default=[256, 256, 256],
-                        help="MLP 은닉층 차원 (예: --hidden-dims 256 256 256)")
-    parser.add_argument("--activation", type=str, default="gelu",
-                        choices=["relu", "gelu"])
-    parser.add_argument("--num-styles", type=int, default=None,
-                        help="다중 스타일 수. None이면 단일 스타일")
-    parser.add_argument("--style-dim", type=int, default=64,
-                        help="스타일 임베딩 차원")
+    parser.add_argument(
+        "--hidden-dims",
+        type=int,
+        nargs="+",
+        default=[256, 256, 256],
+        help="MLP 은닉층 차원 (예: --hidden-dims 256 256 256)",
+    )
+    parser.add_argument(
+        "--activation", type=str, default="gelu", choices=["relu", "gelu"]
+    )
+    parser.add_argument(
+        "--num-styles",
+        type=int,
+        default=None,
+        help="다중 스타일 수. None이면 단일 스타일",
+    )
+    parser.add_argument("--style-dim", type=int, default=64, help="스타일 임베딩 차원")
 
     # 학습
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight-decay", type=float, default=1e-5)
-    parser.add_argument("--scheduler", type=str, default="cosine",
-                        choices=["cosine", "step", "plateau"])
+    parser.add_argument(
+        "--scheduler", type=str, default="cosine", choices=["cosine", "step", "plateau"]
+    )
     parser.add_argument("--warmup-epochs", type=int, default=5)
     parser.add_argument("--early-stopping-patience", type=int, default=15)
     parser.add_argument("--lambda-delta-e", type=float, default=0.5)
     parser.add_argument("--lambda-smooth", type=float, default=0.01)
 
     # 출력
-    parser.add_argument("--checkpoint-dir", type=str, default="checkpoints/nilut",
-                        help="체크포인트 저장 디렉토리")
+    parser.add_argument(
+        "--checkpoint-dir",
+        type=str,
+        default="checkpoints/nilut",
+        help="체크포인트 저장 디렉토리",
+    )
 
     return parser.parse_args()
 
@@ -121,6 +158,7 @@ def build_dataloaders(args: argparse.Namespace):
         logger.info(f".cube 파일 {len(cube_files)}개 발견")
 
         from src.data.dataset import CubeDataset
+
         dataset = CubeDataset(cube_files, samples_per_cube=100_000)
 
     elif args.data_type == "paired":
@@ -128,6 +166,7 @@ def build_dataloaders(args: argparse.Namespace):
             raise ValueError("--input-dir과 --target-dir을 모두 지정해야 합니다")
 
         from src.data.dataset import ImagePairDataset
+
         dataset = ImagePairDataset(
             input_dir=args.input_dir,
             target_dir=args.target_dir,
@@ -234,7 +273,9 @@ def main() -> None:
         trainer.load_checkpoint(args.resume)
 
     logger.info(f"학습 시작: {args.epochs}에포크, 디바이스={device}")
-    trainer.fit(epochs=args.epochs, early_stopping_patience=args.early_stopping_patience)
+    trainer.fit(
+        epochs=args.epochs, early_stopping_patience=args.early_stopping_patience
+    )
     logger.info(f"학습 완료. 최고 val_loss={trainer.best_val_loss:.4f}")
 
 

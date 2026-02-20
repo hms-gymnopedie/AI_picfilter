@@ -23,9 +23,11 @@ ProgressCallback = Optional[Callable[[float, float], None]]
 # 내부 헬퍼
 # ---------------------------------------------------------------------------
 
+
 def _resolve_device() -> str:
     """사용 가능한 최적 디바이스 선택."""
     import torch
+
     if torch.cuda.is_available():
         return "cuda"
     if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
@@ -89,7 +91,9 @@ def _lut3d_trainer_fit(
             return t, t  # (input, target) — identity target
 
     dataset = _RefImageDataset(reference_images, tuple(image_size))
-    loader = DataLoader(dataset, batch_size=min(4, len(dataset)), shuffle=True, num_workers=0)
+    loader = DataLoader(
+        dataset, batch_size=min(4, len(dataset)), shuffle=True, num_workers=0
+    )
 
     # 모델 및 옵티마이저
     model = ImageAdaptive3DLUT(
@@ -99,7 +103,9 @@ def _lut3d_trainer_fit(
     ).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = get_scheduler(optimizer, "cosine", epochs, warmup_epochs=min(5, epochs // 10))
+    scheduler = get_scheduler(
+        optimizer, "cosine", epochs, warmup_epochs=min(5, epochs // 10)
+    )
     criterion = LUT3DCombinedLoss(
         lambda_perceptual=lambda_perceptual,
         lambda_monotonic=lambda_monotonic,
@@ -205,7 +211,9 @@ def _nilut_trainer_fit(
 
     model = NILUT(hidden_dims=hidden_dims).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = get_scheduler(optimizer, "cosine", epochs, warmup_epochs=min(5, epochs // 10))
+    scheduler = get_scheduler(
+        optimizer, "cosine", epochs, warmup_epochs=min(5, epochs // 10)
+    )
     criterion = CombinedLoss(
         lambda_delta_e=lambda_delta_e,
         lambda_smooth=lambda_smooth,
@@ -265,6 +273,7 @@ def _nilut_trainer_fit(
 # 공개 API
 # ---------------------------------------------------------------------------
 
+
 def run_style_learning(
     reference_images: list[str],
     output_path: str,
@@ -297,12 +306,16 @@ def run_style_learning(
     """
     try:
         if model_type == "adaptive_3dlut":
-            stats = _lut3d_trainer_fit(reference_images, output_path, config, progress_callback)
+            stats = _lut3d_trainer_fit(
+                reference_images, output_path, config, progress_callback
+            )
         elif model_type in ("nilut", "dlut"):
             # dlut는 현재 nilut로 대체
             if model_type == "dlut":
                 logger.warning("dlut 모델은 현재 nilut로 대체됩니다.")
-            stats = _nilut_trainer_fit(reference_images, output_path, config, progress_callback)
+            stats = _nilut_trainer_fit(
+                reference_images, output_path, config, progress_callback
+            )
         else:
             raise ValueError(f"지원하지 않는 model_type: {model_type!r}")
 
@@ -492,7 +505,9 @@ def get_model_info(model_path: str) -> Dict[str, Any]:
 
     # 파라미터 수 계산
     state_dict = checkpoint.get("model_state_dict", {})
-    param_count = sum(t.numel() for t in state_dict.values() if isinstance(t, torch.Tensor))
+    param_count = sum(
+        t.numel() for t in state_dict.values() if isinstance(t, torch.Tensor)
+    )
 
     return {
         "model_type": model_type,

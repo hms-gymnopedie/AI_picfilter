@@ -59,7 +59,9 @@ class S3Storage:
     def _get_s3_url(self, s3_key: str) -> str:
         """Get HTTP URL for S3 object."""
         if settings.S3_USE_SSL:
-            return f"https://{self.bucket}.s3.{settings.S3_REGION}.amazonaws.com/{s3_key}"
+            return (
+                f"https://{self.bucket}.s3.{settings.S3_REGION}.amazonaws.com/{s3_key}"
+            )
         else:
             # For MinIO local development
             return f"{settings.S3_ENDPOINT}/{self.bucket}/{s3_key}"

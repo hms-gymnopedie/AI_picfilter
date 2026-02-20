@@ -72,7 +72,9 @@ class SmoothnessLoss(nn.Module):
             # 다중 스타일 모드에서는 스타일 0을 기준으로 평활도 계산
             num_styles = getattr(model, "num_styles", None)
             if num_styles is not None:
-                style_tensor = torch.zeros(grid.shape[0], dtype=torch.long, device=device)
+                style_tensor = torch.zeros(
+                    grid.shape[0], dtype=torch.long, device=device
+                )
                 out = model(grid, style_idx=style_tensor)  # [N, 3]
             else:
                 out = model(grid)  # [N, 3]

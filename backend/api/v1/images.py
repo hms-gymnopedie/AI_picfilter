@@ -37,11 +37,17 @@ async def create_upload_url(
 ):
     # Validate file size
     if request.size_bytes > settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024:
-        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="File too large")
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="File too large",
+        )
 
     # Validate content type
     if request.content_type not in settings.ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Unsupported image format")
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Unsupported image format",
+        )
 
     # Create image record
     image = Image(
@@ -60,7 +66,11 @@ async def create_upload_url(
     s3_client = get_s3_client()
     upload_url = s3_client.generate_presigned_url(
         "put_object",
-        Params={"Bucket": settings.S3_BUCKET, "Key": image.storage_key, "ContentType": request.content_type},
+        Params={
+            "Bucket": settings.S3_BUCKET,
+            "Key": image.storage_key,
+            "ContentType": request.content_type,
+        },
         ExpiresIn=600,
     )
 
@@ -74,18 +84,24 @@ async def confirm_upload(
     db: AsyncSession = Depends(get_db),
 ):
     # Fetch image
-    result = await db.execute(select(Image).where((Image.id == image_id) & (Image.user_id == current_user.id)))
+    result = await db.execute(
+        select(Image).where((Image.id == image_id) & (Image.user_id == current_user.id))
+    )
     image = result.scalars().first()
 
     if not image:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
+        )
 
     # Verify file exists in S3
     s3_client = get_s3_client()
     try:
         s3_client.head_object(Bucket=settings.S3_BUCKET, Key=image.storage_key)
     except s3_client.exceptions.NoSuchKey:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File not found in storage")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="File not found in storage"
+        )
 
     # Update image status
     image.status = "confirmed"
@@ -105,17 +121,25 @@ async def list_images(
     db: AsyncSession = Depends(get_db),
 ):
     # Build query
-    query = select(Image).where((Image.user_id == current_user.id) & (Image.status != "deleted"))
+    query = select(Image).where(
+        (Image.user_id == current_user.id) & (Image.status != "deleted")
+    )
 
     # Count total
-    count_result = await db.execute(select(func.count(Image.id)).where(query.whereclause))
+    count_result = await db.execute(
+        select(func.count(Image.id)).where(query.whereclause)
+    )
     total = count_result.scalar() or 0
 
     # Apply sorting
     if sort == "created_at":
-        query = query.order_by(Image.created_at.desc() if order == "desc" else Image.created_at.asc())
+        query = query.order_by(
+            Image.created_at.desc() if order == "desc" else Image.created_at.asc()
+        )
     else:
-        query = query.order_by(Image.filename.desc() if order == "desc" else Image.filename.asc())
+        query = query.order_by(
+            Image.filename.desc() if order == "desc" else Image.filename.asc()
+        )
 
     # Apply pagination
     offset = (page - 1) * per_page
@@ -133,11 +157,15 @@ async def get_image(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Image).where((Image.id == image_id) & (Image.user_id == current_user.id)))
+    result = await db.execute(
+        select(Image).where((Image.id == image_id) & (Image.user_id == current_user.id))
+    )
     image = result.scalars().first()
 
     if not image:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
+        )
 
     return image
 
@@ -148,11 +176,15 @@ async def delete_image(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Image).where((Image.id == image_id) & (Image.user_id == current_user.id)))
+    result = await db.execute(
+        select(Image).where((Image.id == image_id) & (Image.user_id == current_user.id))
+    )
     image = result.scalars().first()
 
     if not image:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
+        )
 
     from datetime import datetime
 

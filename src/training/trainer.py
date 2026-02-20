@@ -64,6 +64,7 @@ class Trainer:
     ) -> dict[str, torch.Tensor]:
         """손실 함수 호출 — CombinedLoss와 단순 손실 모두 지원."""
         import inspect
+
         sig = inspect.signature(self.criterion.forward)
         params = list(sig.parameters.keys())
 
@@ -163,7 +164,9 @@ class Trainer:
         avg_loss = total_loss / max(1, n_batches)
         avg_de = total_delta_e / max(1, n_batches) if total_delta_e > 0 else 0.0
 
-        logger.info(f"  Validation | val_loss={avg_loss:.4f} | val_delta_e={avg_de:.4f}")
+        logger.info(
+            f"  Validation | val_loss={avg_loss:.4f} | val_delta_e={avg_de:.4f}"
+        )
 
         return {"val_loss": avg_loss, "val_delta_e": avg_de}
 
@@ -185,6 +188,7 @@ class Trainer:
             # 스케줄러 스텝
             if self.scheduler is not None:
                 from torch.optim.lr_scheduler import ReduceLROnPlateau
+
                 if isinstance(self.scheduler, ReduceLROnPlateau):
                     val_loss = val_metrics.get("val_loss", train_metrics["loss"])
                     self.scheduler.step(val_loss)

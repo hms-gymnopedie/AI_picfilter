@@ -1,4 +1,13 @@
-from sqlalchemy import Column, String, Text, Boolean, DateTime, ForeignKey, SmallInteger, PrimaryKeyConstraint
+from sqlalchemy import (
+    Column,
+    String,
+    Text,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    SmallInteger,
+    PrimaryKeyConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -11,8 +20,15 @@ class Comment(Base):
     __tablename__ = "comments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    style_id = Column(UUID(as_uuid=True), ForeignKey("styles.id", ondelete="CASCADE"), nullable=False, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    style_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("styles.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     content = Column(Text, nullable=False)
     is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
@@ -28,11 +44,17 @@ class Comment(Base):
 class Rating(Base):
     __tablename__ = "ratings"
 
-    style_id = Column(UUID(as_uuid=True), ForeignKey("styles.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    style_id = Column(
+        UUID(as_uuid=True), ForeignKey("styles.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     score = Column(SmallInteger, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(
+        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
     __table_args__ = (PrimaryKeyConstraint("style_id", "user_id"),)
 

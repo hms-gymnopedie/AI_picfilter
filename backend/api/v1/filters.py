@@ -8,7 +8,10 @@ from backend.core.database import get_db
 from backend.models import User, Job, Image, Style
 from backend.schemas import JobResponse
 from backend.api.dependencies import get_current_user
-from backend.workers.ml_tasks import apply_filter as apply_filter_task, export_cube as export_cube_task
+from backend.workers.ml_tasks import (
+    apply_filter as apply_filter_task,
+    export_cube as export_cube_task,
+)
 
 router = APIRouter()
 
@@ -28,15 +31,21 @@ async def apply_filter(
     )
     style = result.scalars().first()
     if not style:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Style not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Style not found"
+        )
 
     # Verify image exists and user owns it
     result = await db.execute(
-        select(Image).where((Image.id == target_image_id) & (Image.user_id == current_user.id))
+        select(Image).where(
+            (Image.id == target_image_id) & (Image.user_id == current_user.id)
+        )
     )
     image = result.scalars().first()
     if not image or image.status == "deleted":
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
+        )
 
     # Create job
     job = Job(
@@ -64,7 +73,11 @@ async def apply_filter(
     return job
 
 
-@router.post("/{style_id}/export", response_model=JobResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/{style_id}/export",
+    response_model=JobResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def export_cube(
     style_id: UUID,
     lut_size: int = Query(33, regex="^(17|33|65)$"),
@@ -78,7 +91,9 @@ async def export_cube(
     )
     style = result.scalars().first()
     if not style:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Style not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Style not found"
+        )
 
     # Create job
     job = Job(
@@ -117,7 +132,9 @@ async def get_job_result(
     job = result.scalars().first()
 
     if not job:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
 
     if job.status != "completed":
         raise HTTPException(
@@ -138,6 +155,7 @@ async def get_job_result(
         }
     elif job.job_type == "cube_export":
         from backend.core.storage import storage
+
         download_url = storage.generate_presigned_url(job.result_key, expires_in=3600)
         return {
             "job_id": job.id,
@@ -150,4 +168,6 @@ async def get_job_result(
             "completed_at": job.completed_at,
         }
     else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown job type")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown job type"
+        )

@@ -84,16 +84,16 @@ class ImageAdaptive3DLUT(nn.Module):
         # 이미지 픽셀 좌표를 [-1, 1] 범위로 변환
         # image: [B, 3, H, W] -> 픽셀 좌표 [B, H*W, 3]
         pixels = image.permute(0, 2, 3, 1).reshape(b, h * w, 3)  # [B, N, 3]
-        grid = pixels * 2.0 - 1.0                                  # [-1, 1]
+        grid = pixels * 2.0 - 1.0  # [-1, 1]
 
         # grid_sample: [B, 1, 1, N, 3] 형태로 N개 포인트 동시 조회
-        grid_5d = grid.view(b, 1, 1, h * w, 3)   # [B, 1, 1, N, 3]
+        grid_5d = grid.view(b, 1, 1, h * w, 3)  # [B, 1, 1, N, 3]
         lut_expanded = lut_5d.expand(b, -1, -1, -1, -1)  # [B, 3, S, S, S]
 
         sampled = F.grid_sample(
             lut_expanded,
             grid_5d,
-            mode="bilinear",        # 5D에서 trilinear로 동작
+            mode="bilinear",  # 5D에서 trilinear로 동작
             padding_mode="border",
             align_corners=True,
         )  # [B, 3, 1, 1, N]
@@ -128,15 +128,17 @@ class ImageAdaptive3DLUT(nn.Module):
         # basis LUT 가중 합산: [B, n_basis] x [n_basis, lut_size^3, 3] -> [B, lut_size^3, 3]
         # basis_luts: [n_basis, lut_size^3, 3]
         # weights: [B, n_basis] -> [B, n_basis, 1, 1] 브로드캐스트
-        blended = torch.einsum("bn,npc->bpc", weights, self.basis_luts)  # [B, lut_size^3, 3]
+        blended = torch.einsum(
+            "bn,npc->bpc", weights, self.basis_luts
+        )  # [B, lut_size^3, 3]
 
         # 각 이미지별로 blended LUT 적용
         # 배치 내 이미지마다 LUT가 다르므로 개별 처리
         results = []
         for i in range(b):
             out_i = self._apply_lut_to_image(
-                image[i:i+1],   # [1, 3, H, W]
-                blended[i],     # [lut_size^3, 3]
+                image[i : i + 1],  # [1, 3, H, W]
+                blended[i],  # [lut_size^3, 3]
             )
             results.append(out_i)
 
@@ -164,6 +166,8 @@ class ImageAdaptive3DLUT(nn.Module):
 
         with torch.no_grad():
             weights = self.backbone(thumb)  # [1, n_basis]
-            blended = torch.einsum("bn,npc->bpc", weights, self.basis_luts)[0]  # [lut_size^3, 3]
+            blended = torch.einsum("bn,npc->bpc", weights, self.basis_luts)[
+                0
+            ]  # [lut_size^3, 3]
 
         return blended.reshape(self.lut_size, self.lut_size, self.lut_size, 3)

@@ -11,7 +11,12 @@ class Image(Base):
     __tablename__ = "images"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     filename = Column(String(255), nullable=False)
     storage_key = Column(String(512), nullable=False)
     thumbnail_key = Column(String(512))

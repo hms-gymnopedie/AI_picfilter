@@ -34,7 +34,9 @@ def create_comparison_grid(
         raise ImportError("matplotlib가 필요합니다: pip install matplotlib")
 
     if len(images) != len(labels):
-        raise ValueError(f"images({len(images)})와 labels({len(labels)})의 길이가 다릅니다.")
+        raise ValueError(
+            f"images({len(images)})와 labels({len(labels)})의 길이가 다릅니다."
+        )
 
     n = len(images)
     rows = (n + cols - 1) // cols

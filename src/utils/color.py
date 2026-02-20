@@ -29,6 +29,7 @@ _RGB_TO_XYZ_MAT_T = torch.tensor(_RGB_TO_XYZ_MAT.T, dtype=torch.float32)
 # 내부 헬퍼
 # ---------------------------------------------------------------------------
 
+
 def _srgb_to_linear_np(x: np.ndarray) -> np.ndarray:
     """sRGB 감마 디코딩 (numpy)."""
     x = np.clip(x, 0.0, 1.0).astype(np.float32)
@@ -49,8 +50,8 @@ def _srgb_to_linear_torch(x: torch.Tensor) -> torch.Tensor:
 def _xyz_f(t: Union[np.ndarray, torch.Tensor], is_torch: bool = False):
     """CIE Lab의 비선형 f(t) 함수."""
     delta = 6.0 / 29.0
-    delta3 = delta ** 3  # ≈ 0.008856
-    c1 = 1.0 / (3.0 * delta ** 2)  # ≈ 7.787
+    delta3 = delta**3  # ≈ 0.008856
+    c1 = 1.0 / (3.0 * delta**2)  # ≈ 7.787
     c2 = 4.0 / 29.0  # ≈ 0.1379
     if is_torch:
         return torch.where(t > delta3, t.clamp(min=1e-8).pow(1.0 / 3.0), c1 * t + c2)
@@ -61,9 +62,8 @@ def _xyz_f(t: Union[np.ndarray, torch.Tensor], is_torch: bool = False):
 # 공개 API
 # ---------------------------------------------------------------------------
 
-def rgb_to_xyz(
-    rgb: Union[np.ndarray, torch.Tensor]
-) -> Union[np.ndarray, torch.Tensor]:
+
+def rgb_to_xyz(rgb: Union[np.ndarray, torch.Tensor]) -> Union[np.ndarray, torch.Tensor]:
     """sRGB -> CIE XYZ 변환 (D65 기준).
 
     Args:
@@ -82,9 +82,7 @@ def rgb_to_xyz(
         return linear @ _RGB_TO_XYZ_MAT.T
 
 
-def xyz_to_lab(
-    xyz: Union[np.ndarray, torch.Tensor]
-) -> Union[np.ndarray, torch.Tensor]:
+def xyz_to_lab(xyz: Union[np.ndarray, torch.Tensor]) -> Union[np.ndarray, torch.Tensor]:
     """CIE XYZ -> CIE Lab 변환 (D65 기준).
 
     Args:
@@ -111,9 +109,7 @@ def xyz_to_lab(
         return np.stack([L, a, b], axis=-1)
 
 
-def rgb_to_lab(
-    rgb: Union[np.ndarray, torch.Tensor]
-) -> Union[np.ndarray, torch.Tensor]:
+def rgb_to_lab(rgb: Union[np.ndarray, torch.Tensor]) -> Union[np.ndarray, torch.Tensor]:
     """sRGB -> CIE Lab 변환 (편의 래퍼).
 
     Args:
@@ -125,9 +121,7 @@ def rgb_to_lab(
     return xyz_to_lab(rgb_to_xyz(rgb))
 
 
-def delta_e_cie76(
-    lab1: np.ndarray, lab2: np.ndarray
-) -> np.ndarray:
+def delta_e_cie76(lab1: np.ndarray, lab2: np.ndarray) -> np.ndarray:
     """CIE76 ΔE 계산.
 
     Args:
@@ -138,4 +132,4 @@ def delta_e_cie76(
         ΔE 값, shape [...] (마지막 축 제거)
     """
     diff = np.asarray(lab1, dtype=np.float32) - np.asarray(lab2, dtype=np.float32)
-    return np.sqrt((diff ** 2).sum(axis=-1))
+    return np.sqrt((diff**2).sum(axis=-1))

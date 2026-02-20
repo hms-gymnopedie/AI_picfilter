@@ -54,7 +54,7 @@ const apiClient: KyInstance = ky.create({
     afterResponse: [
       async (_request, _options, response) => {
         if (response.status === 429) {
-          const data = await response.clone().json<{ error: { retryAfter?: number } }>()
+          const data = await response.clone().json() as { error: { retryAfter?: number } }
           const retryAfter = data.error?.retryAfter ?? 30
           console.warn(`Rate limited. Retry after ${retryAfter}s`)
         }

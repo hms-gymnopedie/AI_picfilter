@@ -18,6 +18,7 @@ def cleanup_temp_directory(temp_dir: Path):
     """Clean up temporary directory and its contents."""
     try:
         import shutil
+
         if temp_dir.exists():
             shutil.rmtree(temp_dir)
             logger.info(f"Cleaned up temporary directory: {temp_dir}")

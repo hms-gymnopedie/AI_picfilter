@@ -19,21 +19,29 @@ logger = logging.getLogger(__name__)
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="NILUT 모델 평가")
     parser.add_argument("--model", type=str, required=True, help="학습된 모델 경로")
-    parser.add_argument("--input-dir", type=str, required=True,
-                        help="원본 이미지 디렉토리")
-    parser.add_argument("--target-dir", type=str, required=True,
-                        help="보정 이미지 디렉토리 (ground truth)")
-    parser.add_argument("--output", type=str, default="results/",
-                        help="결과 출력 디렉토리")
+    parser.add_argument(
+        "--input-dir", type=str, required=True, help="원본 이미지 디렉토리"
+    )
+    parser.add_argument(
+        "--target-dir",
+        type=str,
+        required=True,
+        help="보정 이미지 디렉토리 (ground truth)",
+    )
+    parser.add_argument(
+        "--output", type=str, default="results/", help="결과 출력 디렉토리"
+    )
     parser.add_argument("--style", type=int, default=0, help="스타일 인덱스")
     parser.add_argument("--device", type=str, default="auto", help="디바이스")
-    parser.add_argument("--no-visual", action="store_true",
-                        help="시각화 생성 생략 (빠른 평가)")
+    parser.add_argument(
+        "--no-visual", action="store_true", help="시각화 생성 생략 (빠른 평가)"
+    )
     return parser.parse_args()
 
 
 def detect_device(requested: str) -> str:
     import torch
+
     if requested != "auto":
         return requested
     if torch.cuda.is_available():
@@ -45,7 +53,9 @@ def detect_device(requested: str) -> str:
 
 def main() -> None:
     """평가 메인 함수."""
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    )
     args = parse_args()
     device = detect_device(args.device)
 
@@ -82,7 +92,9 @@ def main() -> None:
         tgt = load_image(str(target_path), as_float=True)
 
         # 필터 적용
-        result = apply_filter(inp, model_path=args.model, style_idx=args.style, device=device)
+        result = apply_filter(
+            inp, model_path=args.model, style_idx=args.style, device=device
+        )
 
         # 지표 계산
         de = compute_delta_e(result, tgt)
@@ -93,7 +105,9 @@ def main() -> None:
         all_psnr.append(psnr)
         all_ssim.append(ssim)
 
-        logger.info(f"  {input_path.name}: ΔE={de:.3f}, PSNR={psnr:.2f}dB, SSIM={ssim:.4f}")
+        logger.info(
+            f"  {input_path.name}: ΔE={de:.3f}, PSNR={psnr:.2f}dB, SSIM={ssim:.4f}"
+        )
 
         # 시각화 저장
         if not args.no_visual:
@@ -115,6 +129,7 @@ def main() -> None:
         sys.exit(1)
 
     import numpy as np
+
     summary = {
         "n_images": len(all_de),
         "mean_delta_e": float(np.mean(all_de)),

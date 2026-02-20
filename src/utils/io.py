@@ -6,6 +6,7 @@ from typing import Optional
 
 try:
     from PIL import Image as PILImage
+
     _PIL_AVAILABLE = True
 except ImportError:
     _PIL_AVAILABLE = False

@@ -85,12 +85,12 @@ def compute_ssim(
         mu_x = uniform_filter(x, size=size)
         mu_y = uniform_filter(y, size=size)
 
-        mu_x2 = mu_x ** 2
-        mu_y2 = mu_y ** 2
+        mu_x2 = mu_x**2
+        mu_y2 = mu_y**2
         mu_xy = mu_x * mu_y
 
-        sigma_x2 = uniform_filter(x ** 2, size=size) - mu_x2
-        sigma_y2 = uniform_filter(y ** 2, size=size) - mu_y2
+        sigma_x2 = uniform_filter(x**2, size=size) - mu_x2
+        sigma_y2 = uniform_filter(y**2, size=size) - mu_y2
         sigma_xy = uniform_filter(x * y, size=size) - mu_xy
 
         # SSIM 공식

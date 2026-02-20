@@ -29,10 +29,15 @@ async def create_style_learn_job(
     # Verify reference images belong to user
     for image_id in request.reference_image_ids:
         result = await db.execute(
-            select(Image).where((Image.id == image_id) & (Image.user_id == current_user.id))
+            select(Image).where(
+                (Image.id == image_id) & (Image.user_id == current_user.id)
+            )
         )
         if not result.scalars().first():
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Image {image_id} not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Image {image_id} not found",
+            )
 
     # Create style
     style = Style(
@@ -75,8 +80,12 @@ async def create_style_learn_job(
         reference_image_s3_keys=reference_image_s3_keys,
         config={
             "model_type": request.model_type,
-            "strength": request.options.get("strength", 1.0) if request.options else 1.0,
-            "preserve_structure": request.options.get("preserve_structure", True) if request.options else True,
+            "strength": request.options.get("strength", 1.0)
+            if request.options
+            else 1.0,
+            "preserve_structure": request.options.get("preserve_structure", True)
+            if request.options
+            else True,
         },
     )
     job.celery_task_id = task.id
@@ -97,7 +106,9 @@ async def get_job_status(
     job = result.scalars().first()
 
     if not job:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
 
     return job
 
@@ -122,7 +133,9 @@ async def list_styles(
         query = query.where(Style.is_public == is_public)
 
     # Count total
-    count_result = await db.execute(select(func.count(Style.id)).where(query.whereclause))
+    count_result = await db.execute(
+        select(func.count(Style.id)).where(query.whereclause)
+    )
     total = count_result.scalar() or 0
 
     # Apply pagination
@@ -147,9 +160,13 @@ async def get_style(
     style = result.scalars().first()
 
     if not style:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Style not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Style not found"
+        )
 
-    rating_avg = style.rating_sum / style.rating_count if style.rating_count > 0 else 0.0
+    rating_avg = (
+        style.rating_sum / style.rating_count if style.rating_count > 0 else 0.0
+    )
 
     return StyleDetailResponse(
         id=style.id,
@@ -178,7 +195,9 @@ async def update_style(
     style = result.scalars().first()
 
     if not style:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Style not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Style not found"
+        )
 
     if "name" in request:
         style.name = request["name"]
@@ -191,7 +210,9 @@ async def update_style(
     await db.commit()
     await db.refresh(style)
 
-    rating_avg = style.rating_sum / style.rating_count if style.rating_count > 0 else 0.0
+    rating_avg = (
+        style.rating_sum / style.rating_count if style.rating_count > 0 else 0.0
+    )
 
     return StyleDetailResponse(
         id=style.id,
@@ -219,7 +240,9 @@ async def delete_style(
     style = result.scalars().first()
 
     if not style:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Style not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Style not found"
+        )
 
     style.status = "deleted"
     style.deleted_at = datetime.utcnow()
@@ -242,7 +265,9 @@ async def get_job_progress(
     job = result.scalars().first()
 
     if not job:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
 
     async def event_generator():
         from backend.core.config import settings
@@ -274,6 +299,7 @@ async def get_job_progress(
 
             # Wait before next check
             import asyncio
+
             await asyncio.sleep(1)
 
         redis_client.close()

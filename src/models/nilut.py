@@ -52,7 +52,9 @@ class NILUT(nn.Module):
         # 활성화 함수 선택
         act_map = {"relu": nn.ReLU, "gelu": nn.GELU}
         if activation not in act_map:
-            raise ValueError(f"지원하지 않는 활성화 함수: {activation}. 'relu' 또는 'gelu'만 허용")
+            raise ValueError(
+                f"지원하지 않는 활성화 함수: {activation}. 'relu' 또는 'gelu'만 허용"
+            )
         Act = act_map[activation]
 
         # MLP 구성: Linear -> Act -> ... -> Linear -> Sigmoid
@@ -135,7 +137,11 @@ class NILUT(nn.Module):
             # emb: [B, style_dim] -> [n_pixels, style_dim]
             if rgb.ndim == 4:
                 pixels_per_batch = n_pixels // b
-                emb = emb.unsqueeze(1).expand(-1, pixels_per_batch, -1).reshape(-1, self.style_dim)
+                emb = (
+                    emb.unsqueeze(1)
+                    .expand(-1, pixels_per_batch, -1)
+                    .reshape(-1, self.style_dim)
+                )
             # [B, 3]인 경우는 B == n_pixels이므로 그대로 사용
 
             x = torch.cat([rgb_flat, emb], dim=-1)
@@ -186,7 +192,9 @@ class NILUT(nn.Module):
         norm_weights = [w / total for w in weights]
 
         # 가중치 텐서 구성 [1, num_styles] (0으로 초기화)
-        weight_tensor = torch.zeros(1, self.num_styles, device=rgb.device, dtype=rgb.dtype)
+        weight_tensor = torch.zeros(
+            1, self.num_styles, device=rgb.device, dtype=rgb.dtype
+        )
         for idx, w in zip(style_indices, norm_weights):
             weight_tensor[0, idx] = w
 

@@ -1,6 +1,16 @@
 from .auth import RegisterRequest, LoginRequest, RefreshTokenRequest, TokenResponse
-from .image import ImageUploadRequest, ImageUploadResponse, ImageResponse, ImageListResponse
-from .style import StyleLearnRequest, StyleResponse, StyleListResponse, StyleDetailResponse
+from .image import (
+    ImageUploadRequest,
+    ImageUploadResponse,
+    ImageResponse,
+    ImageListResponse,
+)
+from .style import (
+    StyleLearnRequest,
+    StyleResponse,
+    StyleListResponse,
+    StyleDetailResponse,
+)
 from .job import JobResponse
 from .community import CommentRequest, CommentResponse, RatingRequest, RatingResponse
 

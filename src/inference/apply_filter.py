@@ -173,7 +173,11 @@ def apply_filter_batch(
     Returns:
         필터 적용된 이미지 리스트
     """
-    from src.inference.export import _detect_model_type, _load_nilut_from_checkpoint, _load_lut3d_from_checkpoint
+    from src.inference.export import (
+        _detect_model_type,
+        _load_nilut_from_checkpoint,
+        _load_lut3d_from_checkpoint,
+    )
 
     path = Path(model_path)
     checkpoint = torch.load(path, map_location=device, weights_only=True)
@@ -201,7 +205,9 @@ def apply_filter_batch(
 
             with torch.no_grad():
                 if model_type == "lut3d":
-                    img_t = torch.from_numpy(img_f).permute(2, 0, 1).unsqueeze(0).to(device)
+                    img_t = (
+                        torch.from_numpy(img_f).permute(2, 0, 1).unsqueeze(0).to(device)
+                    )
                     out_t = model(img_t)  # [1, 3, H, W]
                     result_f = out_t.squeeze(0).permute(1, 2, 0).cpu().numpy()
                 else:
@@ -209,8 +215,10 @@ def apply_filter_batch(
                     style_tensor: Optional[torch.Tensor] = None
                     if model.num_styles is not None:
                         style_tensor = torch.full(
-                            (pixels.shape[0],), fill_value=style_idx,
-                            dtype=torch.long, device=device,
+                            (pixels.shape[0],),
+                            fill_value=style_idx,
+                            dtype=torch.long,
+                            device=device,
                         )
                     out = model(pixels, style_idx=style_tensor)
                     result_f = out.cpu().numpy().reshape(h, w, 3)

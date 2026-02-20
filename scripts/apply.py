@@ -19,29 +19,34 @@ logger = logging.getLogger(__name__)
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="이미지에 AI 필터 적용")
-    parser.add_argument("--model", type=str, default=None,
-                        help="학습된 NILUT 모델(.pt) 경로")
-    parser.add_argument("--cube", type=str, default=None,
-                        help=".cube 파일 경로")
-    parser.add_argument("--input", type=str, required=True,
-                        help="입력 이미지 경로")
-    parser.add_argument("--output", type=str, required=True,
-                        help="출력 이미지 경로")
-    parser.add_argument("--style", type=int, default=0,
-                        help="스타일 인덱스 (다중 스타일 모델용, 기본값: 0)")
-    parser.add_argument("--device", type=str, default="auto",
-                        help="디바이스 (cpu/cuda/mps/auto)")
+    parser.add_argument(
+        "--model", type=str, default=None, help="학습된 NILUT 모델(.pt) 경로"
+    )
+    parser.add_argument("--cube", type=str, default=None, help=".cube 파일 경로")
+    parser.add_argument("--input", type=str, required=True, help="입력 이미지 경로")
+    parser.add_argument("--output", type=str, required=True, help="출력 이미지 경로")
+    parser.add_argument(
+        "--style",
+        type=int,
+        default=0,
+        help="스타일 인덱스 (다중 스타일 모델용, 기본값: 0)",
+    )
+    parser.add_argument(
+        "--device", type=str, default="auto", help="디바이스 (cpu/cuda/mps/auto)"
+    )
     return parser.parse_args()
 
 
 def detect_device(requested: str) -> str:
     """디바이스 자동 감지."""
     import torch
+
     if requested != "auto":
         return requested
     if torch.cuda.is_available():
         return "cuda"
     import torch
+
     if torch.backends.mps.is_available():
         return "mps"
     return "cpu"

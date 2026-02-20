@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:8080"]
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://picfilter:password@localhost:5432/picfilter"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://picfilter:password@localhost:5432/picfilter"
+    )
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -34,7 +36,12 @@ class Settings(BaseSettings):
 
     # Image upload
     MAX_UPLOAD_SIZE_MB: int = 50
-    ALLOWED_IMAGE_TYPES: list[str] = ["image/jpeg", "image/png", "image/tiff", "image/webp"]
+    ALLOWED_IMAGE_TYPES: list[str] = [
+        "image/jpeg",
+        "image/png",
+        "image/tiff",
+        "image/webp",
+    ]
 
     # Celery
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"

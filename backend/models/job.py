@@ -12,13 +12,24 @@ class Job(Base):
     __tablename__ = "jobs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     job_type = Column(String(30), nullable=False)
     status = Column(String(20), default="queued", index=True)
     progress = Column(Float, default=0.0)
-    style_id = Column(UUID(as_uuid=True), ForeignKey("styles.id", ondelete="SET NULL"), index=True)
-    input_image_id = Column(UUID(as_uuid=True), ForeignKey("images.id", ondelete="SET NULL"))
-    result_image_id = Column(UUID(as_uuid=True), ForeignKey("images.id", ondelete="SET NULL"))
+    style_id = Column(
+        UUID(as_uuid=True), ForeignKey("styles.id", ondelete="SET NULL"), index=True
+    )
+    input_image_id = Column(
+        UUID(as_uuid=True), ForeignKey("images.id", ondelete="SET NULL")
+    )
+    result_image_id = Column(
+        UUID(as_uuid=True), ForeignKey("images.id", ondelete="SET NULL")
+    )
     result_key = Column(String(512))
     params = Column(JSONB, default={})
     error_message = Column(Text)

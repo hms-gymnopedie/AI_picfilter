@@ -14,7 +14,11 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from backend.core.config import settings
 from backend.core.storage import storage
 from backend.models import Job, Style
-from .utils import create_temp_directory, cleanup_temp_directory, update_job_progress_redis
+from .utils import (
+    create_temp_directory,
+    cleanup_temp_directory,
+    update_job_progress_redis,
+)
 from .celery_app import celery_app
 
 logger = logging.getLogger(__name__)
@@ -24,7 +28,9 @@ redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 # Initialize async database
 engine = create_async_engine(settings.DATABASE_URL, echo=False)
-async_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async_session_maker = async_sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 
 async def get_async_session():
@@ -38,7 +44,13 @@ def progress_callback(job_id: str, current: float, total: float):
     update_job_progress_redis(UUID(job_id), min(progress, 1.0), redis_client)
 
 
-async def update_job_status(job_id: str, status: str, error_message: str = None, result_key: str = None, model_key: str = None):
+async def update_job_status(
+    job_id: str,
+    status: str,
+    error_message: str = None,
+    result_key: str = None,
+    model_key: str = None,
+):
     """Update job status in database."""
     session = await get_async_session()
     try:
@@ -57,7 +69,9 @@ async def update_job_status(job_id: str, status: str, error_message: str = None,
 
             # Update style model_key if this is a learn job
             if status == "completed" and model_key:
-                result = await session.execute(select(Style).where(Style.id == job.style_id))
+                result = await session.execute(
+                    select(Style).where(Style.id == job.style_id)
+                )
                 style = result.scalars().first()
                 if style:
                     style.model_key = model_key
@@ -70,8 +84,12 @@ async def update_job_status(job_id: str, status: str, error_message: str = None,
         await session.close()
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=30, name="ml_tasks.learn_style")
-def learn_style(self, job_id: str, style_id: str, reference_image_s3_keys: list, config: dict):
+@celery_app.task(
+    bind=True, max_retries=3, default_retry_delay=30, name="ml_tasks.learn_style"
+)
+def learn_style(
+    self, job_id: str, style_id: str, reference_image_s3_keys: list, config: dict
+):
     """
     Learn style from reference images using ML model.
 
@@ -100,7 +118,9 @@ def learn_style(self, job_id: str, style_id: str, reference_image_s3_keys: list,
             asyncio.run(storage.download_file(s3_key, local_path))
             reference_image_paths.append(local_path)
             # Report progress
-            update_job_progress_redis(UUID(job_id), i / len(reference_image_s3_keys) * 0.2, redis_client)
+            update_job_progress_redis(
+                UUID(job_id), i / len(reference_image_s3_keys) * 0.2, redis_client
+            )
 
         logger.info(f"Downloaded {len(reference_image_paths)} reference images")
 
@@ -126,7 +146,9 @@ def learn_style(self, job_id: str, style_id: str, reference_image_s3_keys: list,
                 output_path=model_output_path,
                 model_type=model_type,
                 config=config,
-                progress_callback=lambda curr, total: progress_callback(job_id, curr, total),
+                progress_callback=lambda curr, total: progress_callback(
+                    job_id, curr, total
+                ),
             )
 
             logger.info(f"Style learning completed: {result}")
@@ -142,7 +164,11 @@ def learn_style(self, job_id: str, style_id: str, reference_image_s3_keys: list,
         logger.info(f"Uploaded model to S3: {s3_model_key}")
 
         # Update job status to completed
-        asyncio.run(update_job_status(job_id, "completed", model_key=s3_model_key, result_key=s3_model_key))
+        asyncio.run(
+            update_job_status(
+                job_id, "completed", model_key=s3_model_key, result_key=s3_model_key
+            )
+        )
         update_job_progress_redis(UUID(job_id), 1.0, redis_client)
 
         return {
@@ -155,11 +181,12 @@ def learn_style(self, job_id: str, style_id: str, reference_image_s3_keys: list,
     except Exception as exc:
         logger.error(f"Style learning failed: {exc}", exc_info=True)
         import asyncio
+
         asyncio.run(update_job_status(job_id, "failed", error_message=str(exc)))
 
         # Retry with exponential backoff
         if self.request.retries < self.max_retries:
-            raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+            raise self.retry(exc=exc, countdown=2**self.request.retries)
         else:
             raise
 
@@ -168,8 +195,12 @@ def learn_style(self, job_id: str, style_id: str, reference_image_s3_keys: list,
             cleanup_temp_directory(temp_dir)
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=30, name="ml_tasks.apply_filter")
-def apply_filter(self, job_id: str, input_image_s3_key: str, style_id: str, intensity: float):
+@celery_app.task(
+    bind=True, max_retries=3, default_retry_delay=30, name="ml_tasks.apply_filter"
+)
+def apply_filter(
+    self, job_id: str, input_image_s3_key: str, style_id: str, intensity: float
+):
     """
     Apply learned style filter to image.
 
@@ -183,7 +214,9 @@ def apply_filter(self, job_id: str, input_image_s3_key: str, style_id: str, inte
 
     temp_dir = None
     try:
-        logger.info(f"Starting filter application: job_id={job_id}, style_id={style_id}")
+        logger.info(
+            f"Starting filter application: job_id={job_id}, style_id={style_id}"
+        )
 
         # Update job status to processing
         asyncio.run(update_job_status(job_id, "processing"))
@@ -220,7 +253,9 @@ def apply_filter(self, job_id: str, input_image_s3_key: str, style_id: str, inte
                 model_path=model_path,
                 output_path=output_image_path,
                 intensity=intensity,
-                progress_callback=lambda curr, total: progress_callback(job_id, curr, total),
+                progress_callback=lambda curr, total: progress_callback(
+                    job_id, curr, total
+                ),
             )
 
             logger.info(f"Filter application completed: {result}")
@@ -228,6 +263,7 @@ def apply_filter(self, job_id: str, input_image_s3_key: str, style_id: str, inte
             logger.warning("inference_api not available, using mock result")
             # Mock result for testing
             import shutil
+
             output_image_path = str(temp_dir / "output.jpg")
             shutil.copy(input_image_path, output_image_path)
 
@@ -250,10 +286,11 @@ def apply_filter(self, job_id: str, input_image_s3_key: str, style_id: str, inte
     except Exception as exc:
         logger.error(f"Filter application failed: {exc}", exc_info=True)
         import asyncio
+
         asyncio.run(update_job_status(job_id, "failed", error_message=str(exc)))
 
         if self.request.retries < self.max_retries:
-            raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+            raise self.retry(exc=exc, countdown=2**self.request.retries)
         else:
             raise
 
@@ -262,7 +299,9 @@ def apply_filter(self, job_id: str, input_image_s3_key: str, style_id: str, inte
             cleanup_temp_directory(temp_dir)
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=30, name="ml_tasks.export_cube")
+@celery_app.task(
+    bind=True, max_retries=3, default_retry_delay=30, name="ml_tasks.export_cube"
+)
 def export_cube(self, job_id: str, style_id: str, lut_size: int):
     """
     Export learned style as .cube LUT file.
@@ -308,7 +347,9 @@ def export_cube(self, job_id: str, style_id: str, lut_size: int):
                 model_path=model_path,
                 output_path=cube_output_path,
                 lut_size=lut_size,
-                progress_callback=lambda curr, total: progress_callback(job_id, curr, total),
+                progress_callback=lambda curr, total: progress_callback(
+                    job_id, curr, total
+                ),
             )
 
             logger.info(f".cube export completed: {result}")
@@ -316,7 +357,7 @@ def export_cube(self, job_id: str, style_id: str, lut_size: int):
             logger.warning("inference_api not available, using mock result")
             # Mock result for testing
             cube_output_path = str(temp_dir / f"style_{lut_size}.cube")
-            Path(cube_output_path).write_text(f"TITLE \"Style {style_id}\"\n")
+            Path(cube_output_path).write_text(f'TITLE "Style {style_id}"\n')
 
         # Upload .cube file to S3
         s3_cube_key = f"cubes/{style_id}/export_{job_id}.cube"
@@ -338,10 +379,11 @@ def export_cube(self, job_id: str, style_id: str, lut_size: int):
     except Exception as exc:
         logger.error(f".cube export failed: {exc}", exc_info=True)
         import asyncio
+
         asyncio.run(update_job_status(job_id, "failed", error_message=str(exc)))
 
         if self.request.retries < self.max_retries:
-            raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+            raise self.retry(exc=exc, countdown=2**self.request.retries)
         else:
             raise
 

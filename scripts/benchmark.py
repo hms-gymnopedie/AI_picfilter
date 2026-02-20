@@ -57,6 +57,7 @@ def load_model(model_path: Path, device: str):
         _load_nilut_from_checkpoint,
         _load_lut3d_from_checkpoint,
     )
+
     checkpoint = torch.load(model_path, map_location=device, weights_only=True)
     model_type = _detect_model_type(checkpoint)
     if model_type == "lut3d":
@@ -70,7 +71,7 @@ def run_nilut_inference(model, image_t: torch.Tensor, device: str) -> torch.Tens
     b, c, h, w = image_t.shape
     pixels = image_t.permute(0, 2, 3, 1).reshape(-1, 3)
     # 다중 스타일 모드일 경우 style_idx=0 Tensor로 기본 실행
-    if getattr(model, 'num_styles', None) is not None:
+    if getattr(model, "num_styles", None) is not None:
         n = pixels.shape[0]
         idx = torch.zeros(n, dtype=torch.long, device=device)
         out = model(pixels, style_idx=idx)
@@ -139,7 +140,7 @@ def measure_model_size(model_path: Path, model) -> dict[str, Any]:
     param_count = sum(p.numel() for p in model.parameters())
     trainable_count = sum(p.numel() for p in model.parameters() if p.requires_grad)
     file_size_bytes = model_path.stat().st_size
-    file_size_mb = file_size_bytes / (1024 ** 2)
+    file_size_mb = file_size_bytes / (1024**2)
     return {
         "param_count": param_count,
         "trainable_param_count": trainable_count,
@@ -206,7 +207,11 @@ def check_quality_thresholds(
             checks["latency_4k_gpu"] = k4[0]["mean_ms"] < lat_threshold * 4
 
     all_pass = all(checks.values())
-    return {"checks": checks, "all_pass": all_pass, "summary": "PASS" if all_pass else "FAIL"}
+    return {
+        "checks": checks,
+        "all_pass": all_pass,
+        "summary": "PASS" if all_pass else "FAIL",
+    }
 
 
 def print_table(rows: list[list[str]], headers: list[str]) -> None:
@@ -239,9 +244,14 @@ def print_benchmark_report(report: dict[str, Any]) -> None:
     print("\n[추론 속도]")
     headers = ["해상도", "디바이스", "평균(ms)", "P95(ms)", "P99(ms)", "std(ms)"]
     rows = [
-        [r["resolution"], r["device"],
-         f"{r['mean_ms']:.2f}", f"{r['p95_ms']:.2f}",
-         f"{r['p99_ms']:.2f}", f"{r['std_ms']:.2f}"]
+        [
+            r["resolution"],
+            r["device"],
+            f"{r['mean_ms']:.2f}",
+            f"{r['p95_ms']:.2f}",
+            f"{r['p99_ms']:.2f}",
+            f"{r['std_ms']:.2f}",
+        ]
         for r in report["latency"]
     ]
     if rows:
@@ -250,7 +260,9 @@ def print_benchmark_report(report: dict[str, Any]) -> None:
         print("  (측정 결과 없음)")
 
     de = report["delta_e"]
-    print(f"\n[항등 변환 ΔE  (배포 기준: 평균 < {QUALITY_THRESHOLDS['delta_e_max']:.1f})]")
+    print(
+        f"\n[항등 변환 ΔE  (배포 기준: 평균 < {QUALITY_THRESHOLDS['delta_e_max']:.1f})]"
+    )
     print(f"  평균 ΔE : {de['mean_delta_e']:.4f}")
     print(f"  최대 ΔE : {de['max_delta_e']:.4f}")
     print(f"  P95 ΔE  : {de['p95_delta_e']:.4f}")
@@ -262,16 +274,28 @@ def print_benchmark_report(report: dict[str, Any]) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="NILUT / ImageAdaptive3DLUT 모델 벤치마크")
-    parser.add_argument("--model", type=str, required=True, help="학습된 모델 경로 (.pt)")
+    parser = argparse.ArgumentParser(
+        description="NILUT / ImageAdaptive3DLUT 모델 벤치마크"
+    )
     parser.add_argument(
-        "--resolutions", type=str, nargs="+",
+        "--model", type=str, required=True, help="학습된 모델 경로 (.pt)"
+    )
+    parser.add_argument(
+        "--resolutions",
+        type=str,
+        nargs="+",
         default=["256x256", "1920x1080", "3840x2160"],
         help="테스트 해상도 목록",
     )
-    parser.add_argument("--devices", type=str, nargs="+", default=None, help="테스트 디바이스")
-    parser.add_argument("--iterations", type=int, default=10, help="반복 횟수 (기본값: 10)")
-    parser.add_argument("--output-dir", type=str, default="reports", help="JSON 저장 디렉토리")
+    parser.add_argument(
+        "--devices", type=str, nargs="+", default=None, help="테스트 디바이스"
+    )
+    parser.add_argument(
+        "--iterations", type=int, default=10, help="반복 횟수 (기본값: 10)"
+    )
+    parser.add_argument(
+        "--output-dir", type=str, default="reports", help="JSON 저장 디렉토리"
+    )
     parser.add_argument("--no-save", action="store_true", help="JSON 리포트 저장 생략")
     return parser.parse_args()
 
@@ -326,7 +350,9 @@ def main() -> None:
 
         if not size_info:
             size_info = measure_model_size(model_path, model)
-            logger.info(f"  파라미터: {size_info['param_count']:,}  파일: {size_info['file_size_mb']:.3f} MB")
+            logger.info(
+                f"  파라미터: {size_info['param_count']:,}  파일: {size_info['file_size_mb']:.3f} MB"
+            )
 
         if not delta_e_info and device == "cpu":
             logger.info("  항등 변환 ΔE 측정 중...")
@@ -335,14 +361,23 @@ def main() -> None:
                 logger.info(f"  평균 ΔE: {delta_e_info['mean_delta_e']:.4f}")
             except Exception as exc:
                 logger.warning(f"  ΔE 측정 실패: {exc}")
-                delta_e_info = {"mean_delta_e": -1, "max_delta_e": -1, "p95_delta_e": -1, "passes_threshold": False}
+                delta_e_info = {
+                    "mean_delta_e": -1,
+                    "max_delta_e": -1,
+                    "p95_delta_e": -1,
+                    "passes_threshold": False,
+                }
 
         for res_name, (h, w) in target_resolutions.items():
             logger.info(f"  {res_name} 측정 중...")
             try:
-                result = benchmark_resolution(model, model_type, res_name, h, w, device, args.iterations)
+                result = benchmark_resolution(
+                    model, model_type, res_name, h, w, device, args.iterations
+                )
                 latency_results.append(result)
-                logger.info(f"    평균: {result['mean_ms']:.2f}ms  P95: {result['p95_ms']:.2f}ms")
+                logger.info(
+                    f"    평균: {result['mean_ms']:.2f}ms  P95: {result['p95_ms']:.2f}ms"
+                )
             except Exception as exc:
                 logger.error(f"  {res_name} ({device}) 측정 실패: {exc}")
 
@@ -351,9 +386,16 @@ def main() -> None:
             model, model_type = load_model(model_path, devices[0])
             delta_e_info = measure_identity_delta_e(model, model_type, devices[0])
         except Exception:
-            delta_e_info = {"mean_delta_e": -1, "max_delta_e": -1, "p95_delta_e": -1, "passes_threshold": False}
+            delta_e_info = {
+                "mean_delta_e": -1,
+                "max_delta_e": -1,
+                "p95_delta_e": -1,
+                "passes_threshold": False,
+            }
 
-    quality_check = check_quality_thresholds(model_type_global, size_info, latency_results, delta_e_info)
+    quality_check = check_quality_thresholds(
+        model_type_global, size_info, latency_results, delta_e_info
+    )
 
     report: dict[str, Any] = {
         "benchmark_timestamp": datetime.now().isoformat(),

@@ -1,4 +1,14 @@
-from sqlalchemy import Column, String, Text, Integer, Boolean, DateTime, ForeignKey, Table, PrimaryKeyConstraint
+from sqlalchemy import (
+    Column,
+    String,
+    Text,
+    Integer,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Table,
+    PrimaryKeyConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -11,7 +21,12 @@ class Style(Base):
     __tablename__ = "styles"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     name = Column(String(100), nullable=False)
     description = Column(Text)
     model_type = Column(String(30), nullable=False, default="nilut")
@@ -24,7 +39,9 @@ class Style(Base):
     download_count = Column(Integer, default=0)
     status = Column(String(20), default="active")
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(
+        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
+    )
     deleted_at = Column(DateTime(timezone=True))
 
     # Relationships
@@ -35,8 +52,12 @@ class Style(Base):
         cascade="all, delete-orphan",
     )
     jobs = relationship("Job", back_populates="style")
-    comments = relationship("Comment", back_populates="style", cascade="all, delete-orphan")
-    ratings = relationship("Rating", back_populates="style", cascade="all, delete-orphan")
+    comments = relationship(
+        "Comment", back_populates="style", cascade="all, delete-orphan"
+    )
+    ratings = relationship(
+        "Rating", back_populates="style", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Style {self.name}>"
@@ -45,8 +66,12 @@ class Style(Base):
 class StyleReferenceImage(Base):
     __tablename__ = "style_reference_images"
 
-    style_id = Column(UUID(as_uuid=True), ForeignKey("styles.id", ondelete="CASCADE"), nullable=False)
-    image_id = Column(UUID(as_uuid=True), ForeignKey("images.id", ondelete="CASCADE"), nullable=False)
+    style_id = Column(
+        UUID(as_uuid=True), ForeignKey("styles.id", ondelete="CASCADE"), nullable=False
+    )
+    image_id = Column(
+        UUID(as_uuid=True), ForeignKey("images.id", ondelete="CASCADE"), nullable=False
+    )
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
 
     __table_args__ = (PrimaryKeyConstraint("style_id", "image_id"),)

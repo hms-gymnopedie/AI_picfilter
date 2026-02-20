@@ -38,8 +38,11 @@ def get_scheduler(
         def lr_lambda(epoch: int) -> float:
             if epoch < warmup_epochs:
                 return float(epoch + 1) / float(max(1, warmup_epochs))
-            progress = float(epoch - warmup_epochs) / float(max(1, epochs - warmup_epochs))
+            progress = float(epoch - warmup_epochs) / float(
+                max(1, epochs - warmup_epochs)
+            )
             import math
+
             return 0.5 * (1.0 + math.cos(math.pi * progress))
 
         return LambdaLR(optimizer, lr_lambda=lr_lambda)

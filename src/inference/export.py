@@ -193,9 +193,15 @@ def _export_lut3d_to_cube(
 
     # cube_size가 모델 lut_size와 다르면 trilinear 보간
     if lut_np.shape[0] != cube_size:
-        lut_t = torch.from_numpy(lut_np).permute(3, 0, 1, 2).unsqueeze(0)  # [1, 3, S, S, S]
-        lut_t = F.interpolate(lut_t, size=(cube_size, cube_size, cube_size), mode="trilinear",
-                              align_corners=True)
+        lut_t = (
+            torch.from_numpy(lut_np).permute(3, 0, 1, 2).unsqueeze(0)
+        )  # [1, 3, S, S, S]
+        lut_t = F.interpolate(
+            lut_t,
+            size=(cube_size, cube_size, cube_size),
+            mode="trilinear",
+            align_corners=True,
+        )
         lut_np = lut_t.squeeze(0).permute(1, 2, 3, 0).numpy()
 
     lut_np = np.clip(lut_np, 0.0, 1.0).astype(np.float32)
