@@ -96,7 +96,6 @@ class NILUT(nn.Module):
             변환된 RGB 텐서, 입력과 동일한 shape
         """
         # 입력 shape 기록 및 [N, 3] 픽셀 배치로 변환
-        original_shape = rgb.shape
         is_image_chw = False
 
         if rgb.ndim == 4 and rgb.shape[1] == 3:

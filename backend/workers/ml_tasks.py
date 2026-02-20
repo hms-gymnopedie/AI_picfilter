@@ -199,7 +199,7 @@ def apply_filter(self, job_id: str, input_image_s3_key: str, style_id: str, inte
         model_s3_key = f"styles/{style_id}/model.pt"
         model_path = str(temp_dir / "model.pt")
         asyncio.run(storage.download_file(model_s3_key, model_path))
-        logger.info(f"Downloaded input image and model")
+        logger.info("Downloaded input image and model")
         update_job_progress_redis(UUID(job_id), 0.5, redis_client)
 
         # Get style model_type from database for logging
@@ -288,7 +288,7 @@ def export_cube(self, job_id: str, style_id: str, lut_size: int):
         model_s3_key = f"styles/{style_id}/model.pt"
         model_path = str(temp_dir / "model.pt")
         asyncio.run(storage.download_file(model_s3_key, model_path))
-        logger.info(f"Downloaded model for .cube export")
+        logger.info("Downloaded model for .cube export")
         update_job_progress_redis(UUID(job_id), 0.3, redis_client)
 
         # Get style model_type from database for logging

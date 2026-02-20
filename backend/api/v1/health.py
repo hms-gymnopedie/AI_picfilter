@@ -57,8 +57,6 @@ async def readiness_check(db: AsyncSession = Depends(get_db)):
 
     # Determine overall status
     all_ok = all(v == "ok" for v in checks.values())
-    status_code = status.HTTP_200_OK if all_ok else status.HTTP_503_SERVICE_UNAVAILABLE
-
     return {
         "status": "ready" if all_ok else "not_ready",
         "checks": checks,

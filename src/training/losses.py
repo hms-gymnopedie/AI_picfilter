@@ -121,7 +121,7 @@ class PerceptualLoss(nn.Module):
         # relu2_2: features[9], relu3_3: features[16]
         _layer_map = {"relu2_2": 9, "relu3_3": 16, "relu4_3": 23}
 
-        max_idx = max(_layer_map[l] for l in self._layers) + 1
+        max_idx = max(_layer_map[layer] for layer in self._layers) + 1
         vgg_full = models.vgg16(weights=models.VGG16_Weights.DEFAULT)
         self._vgg = nn.Sequential(*list(vgg_full.features.children())[:max_idx])
         self._vgg.to(device)
@@ -130,7 +130,7 @@ class PerceptualLoss(nn.Module):
         self._vgg.eval()
 
         # 사용할 feature 인덱스 저장
-        self._feature_indices = [_layer_map[l] for l in self._layers]
+        self._feature_indices = [_layer_map[layer] for layer in self._layers]
 
     def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         """지각적 손실 계산.

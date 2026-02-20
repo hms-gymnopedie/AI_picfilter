@@ -84,7 +84,6 @@ def _infer_hidden_dims(state_dict: dict) -> list[int]:
     for key, tensor in state_dict.items():
         if key.startswith("mlp.") and key.endswith(".weight"):
             # mlp.0.weight, mlp.2.weight, ... 순서
-            layer_idx = int(key.split(".")[1])
             out_dim = tensor.shape[0]
             # 마지막 Linear(출력 3) 제외
             if out_dim != 3:
@@ -229,7 +228,6 @@ def export_to_onnx(
 
     # 다중 스타일인 경우 스타일 인덱스 고정
     if model.num_styles is not None:
-        dummy_style = torch.tensor([style_idx], dtype=torch.long)
 
         class NILUTWithStyle(torch.nn.Module):
             def __init__(self, inner: NILUT, sid: int):
