@@ -1,0 +1,36 @@
+# Image-Adaptive 3D LUT 학습 설정
+# Reference: HuiZeng/Image-Adaptive-3DLUT (Apache 2.0)
+
+model:
+  name: lut3d
+  n_basis: 3            # basis LUT 개수 (3~5 권장)
+  lut_size: 33          # LUT 그리드 크기 (17 또는 33)
+  backbone_input_size: 256  # backbone 입력 해상도
+
+data:
+  type: paired          # paired(이미지 쌍) 또는 cube
+  paired_input_dir: data/raw
+  paired_target_dir: data/processed
+  image_size: [256, 256]
+  batch_size: 8
+  num_workers: 4
+
+training:
+  epochs: 200
+  lr: 1.0e-4
+  weight_decay: 0.0
+  optimizer: adam
+  scheduler: cosine
+  warmup_epochs: 5
+  early_stopping_patience: 20
+  loss:
+    lambda_perceptual: 0.1   # VGG 지각적 손실 가중치
+    lambda_monotonic: 10.0   # 단조성 정규화 가중치
+    use_perceptual: true      # torchvision 필요
+
+evaluation:
+  metrics: [delta_e, psnr, ssim]
+
+export:
+  cube_size: 33
+  format: cube   # cube, onnx, torchscript

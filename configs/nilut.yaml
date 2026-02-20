@@ -1,0 +1,40 @@
+# NILUT 학습 설정
+
+defaults:
+  - default
+
+model:
+  name: nilut
+  hidden_dims: [256, 256, 256]
+  activation: gelu
+  num_styles: null  # null이면 단일 스타일, 숫자이면 다중 스타일
+  style_dim: 64
+
+data:
+  type: cube  # cube 또는 paired
+  cube_dir: data/cube_files
+  paired_input_dir: data/raw
+  paired_target_dir: data/processed
+  batch_size: 4096  # 픽셀 단위 배치 (RGB 포인트)
+  num_workers: 4
+  samples_per_cube: 100000
+
+training:
+  epochs: 100
+  lr: 1.0e-3
+  weight_decay: 1.0e-5
+  optimizer: adam
+  scheduler: cosine
+  warmup_epochs: 5
+  early_stopping_patience: 15
+  loss:
+    l1_weight: 1.0
+    delta_e_weight: 0.5
+    smoothness_weight: 0.01
+
+evaluation:
+  metrics: [delta_e, psnr, ssim]
+
+export:
+  cube_size: 33
+  format: cube  # cube, onnx, torchscript

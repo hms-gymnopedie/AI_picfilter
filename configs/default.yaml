@@ -1,0 +1,17 @@
+# AI_picfilter 기본 설정
+
+seed: 42
+device: auto  # auto, cpu, cuda, mps
+
+# 로깅
+logging:
+  level: INFO
+  tensorboard: true
+  wandb: false
+  log_interval: 100  # 배치 단위
+
+# 체크포인트
+checkpoint:
+  dir: checkpoints
+  save_interval: 5  # 에포크 단위
+  keep_last: 3
