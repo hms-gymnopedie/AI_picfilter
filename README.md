@@ -1,5 +1,7 @@
 # AI_picfilter
 
+[![CI](https://github.com/hms-gymnopedie/AI_picfilter/actions/workflows/ci.yml/badge.svg)](https://github.com/hms-gymnopedie/AI_picfilter/actions/workflows/ci.yml)
+
 AI 기반 이미지 스타일 학습 및 자동 필터 생성 시스템.
 
 레퍼런스 이미지 한 장을 업로드하면 AI가 색상, 조명, 질감, 분위기를 학습하고, 다른 이미지에 그 스타일을 적용하거나 Photoshop/Premiere와 호환되는 `.cube` LUT 파일로 내보낼 수 있습니다.
